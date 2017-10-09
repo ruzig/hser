@@ -13,14 +13,15 @@ import qualified Data.Map as Map
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Data.Aeson
+import           Data.List
 import           Data.Text (Text)
 import           Network.HTTP.Conduit (simpleHttp)
 import GHC.Generics
 
 
 
-data Guser = Guser { login :: !Text
-                    , avatar_url :: !Text
+data Guser = Guser { login :: !String
+                    , html_url :: !String
 										} deriving (Generic, Show)
 
 instance FromJSON Guser
@@ -29,6 +30,17 @@ instance ToJSON Guser
 data Gsearch = Gsearch { items :: [Guser] } deriving (Generic, Show)
 instance FromJSON Gsearch
 instance ToJSON Gsearch
+
+renderGuser :: Guser -> String
+renderGuser u = "UserName: " ++ name ++ " --url: " ++ profileUrl
+  where
+    name :: String
+    name = login u
+    profileUrl :: String
+    profileUrl = html_url u
+
+renderGsearch :: Gsearch -> String
+renderGsearch g = unwords $ map renderGuser $ items g
 
 jsonURL :: String
 jsonURL = "https://api.github.com/search/users?q=location:singapore"
@@ -51,5 +63,5 @@ displayUsers = do
   d <- (eitherDecode <$> getJSON) :: IO (Either String Gsearch)
   case d of
     Left err -> putStrLn err
-    Right ps -> print ps
+    Right ps -> print $ renderGsearch ps
 
