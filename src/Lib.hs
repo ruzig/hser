@@ -10,6 +10,7 @@ import qualified Data.ByteString.Lazy as B
 
 import qualified Data.Map as Map
 
+import           Control.Monad
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Data.Aeson
@@ -32,15 +33,15 @@ instance FromJSON Gsearch
 instance ToJSON Gsearch
 
 renderGuser :: Guser -> String
-renderGuser u = "UserName: " ++ name ++ " --url: " ++ profileUrl
+renderGuser u = "UserName: " ++ name ++ " -- URL: " ++ profileUrl
   where
     name :: String
     name = login u
     profileUrl :: String
     profileUrl = html_url u
 
-renderGsearch :: Gsearch -> String
-renderGsearch g = unwords $ map renderGuser $ items g
+renderGsearch :: Gsearch -> [String]
+renderGsearch g = map renderGuser $ items g
 
 jsonURL :: String
 jsonURL = "https://api.github.com/search/users?q=location:singapore"
@@ -63,5 +64,5 @@ displayUsers = do
   d <- (eitherDecode <$> getJSON) :: IO (Either String Gsearch)
   case d of
     Left err -> putStrLn err
-    Right ps -> print $ renderGsearch ps
+    Right ps -> mapM_ putStrLn $ renderGsearch ps
 
