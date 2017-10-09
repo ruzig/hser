@@ -7,24 +7,29 @@ module Lib
     ) where
 
 import qualified Data.ByteString.Lazy.Char8 as L8
+
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
-import           Network.HTTP.Simple
+import           Data.Aeson.Parser           (json)
+import           Network.HTTP.Client.Conduit (bodyReaderSource)
+import           Data.Conduit                (($$))
+import           Data.Conduit.Attoparsec     (sinkParser)
 
 displayUsers :: IO ()
 displayUsers = do
-    manager <- newManager $ managerSetProxy noProxy tlsManagerSettings
-    setGlobalManager manager
+	manager <- newManager $ managerSetProxy noProxy tlsManagerSettings
+	setGlobalManager manager
 
-    initialRequest <- parseRequest "https://api.github.com/search/users?q=location:singapore"
-    let request = initialRequest
-            { method = "GET"
-            , requestHeaders =
-                [ ("Content-Type", "application/json; charset=utf-8"),
-                ("User-Agent", "hser")
-                ]
-            }
-    response <- httpLBS request
-
-    L8.putStrLn $ getResponseBody response
+	initialRequest <- parseRequest "https://api.github.com/search/users?q=location:singapore"
+	let request = initialRequest
+					{ method = "GET"
+					, requestHeaders =
+							[ ("Content-Type", "application/json; charset=utf-8"),
+							("User-Agent", "hser")
+							]
+					}
+	withResponse request manager $ \response -> do
+		value <- bodyReaderSource (responseBody response)
+					$$ sinkParser json
+		print value
 

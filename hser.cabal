@@ -22,6 +22,9 @@ library
                     ,  http-client
                     ,  http-client-tls
                     ,  bytestring
+                    ,  conduit-extra
+                    ,  conduit
+                    ,  aeson
   default-language:    Haskell2010
 
 executable hser-exe
