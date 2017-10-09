@@ -41,7 +41,7 @@ renderGuser u = "UserName: " ++ name ++ " -- URL: " ++ profileUrl
     profileUrl = html_url u
 
 renderGsearch :: Gsearch -> [String]
-renderGsearch g = map renderGuser $ items g
+renderGsearch = map renderGuser . items
 
 jsonURL :: String
 jsonURL = "https://api.github.com/search/users?q=location:singapore"
